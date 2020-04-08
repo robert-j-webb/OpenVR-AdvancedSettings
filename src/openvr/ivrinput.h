@@ -6,6 +6,7 @@
 #include "ivrinput_action_set.h"
 #include "ivrinput_input_source.h"
 #include <array>
+#include <atomic>
 
 namespace input
 {
@@ -68,6 +69,7 @@ namespace action_keys
 
 } // namespace action_keys
 
+static bool g_isInputInit = false;
 /*!
 Keys to get input source handles (things like hmd controllers etc.)
 */
@@ -92,6 +94,7 @@ namespace action_sets
 
 using ActiveActionSets
     = std::array<vr::VRActiveActionSet_t, action_sets::numberOfSets>;
+using SystemActionSets = std::array<vr::VRActiveActionSet_t, 2>;
 
 /*!
 Responsible for controller input.
@@ -116,6 +119,10 @@ entirely stable, and should not be leaked outside this class.
 
 The name of the actions manifest must be set in ivrinput_manifest.h.
 */
+
+static std::atomic_bool g_priorityChangeFlag = false;
+static std::atomic_int g_priortityTarget = 0x0;
+
 class SteamIVRInput
 {
 public:
@@ -186,7 +193,6 @@ public:
 
 private:
     Manifest m_manifest;
-
     ActionSet m_haptics;
     ActionSet m_music;
     ActionSet m_motion;
@@ -249,6 +255,7 @@ private:
 
     // Initialize the set of actions after everything else.
     ActiveActionSets m_sets;
+    SystemActionSets m_systemSets;
 };
 
 } // namespace input

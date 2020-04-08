@@ -23,8 +23,50 @@ public:
         m_activeActionSet.ulActionSet = handle;
         m_activeActionSet.ulRestrictedToDevice
             = vr::k_ulInvalidInputValueHandle;
-        m_activeActionSet.nPriority = 0;
+        m_activeActionSet.nPriority = 0x01FFFFFF;
     }
+
+    ActionSet( const char* setName, int priority )
+    {
+        vr::VRActionSetHandle_t handle = 0;
+        auto error = vr::VRInput()->GetActionSetHandle( setName, &handle );
+        if ( error != vr::EVRInputError::VRInputError_None )
+        {
+            LOG( ERROR ) << "Error getting handle for '" << setName
+                         << "'. OpenVR Error: " << error;
+        }
+
+        if ( priority > 0x01FFFFFF )
+        {
+            LOG( ERROR ) << " Action Set Priority of " << setName
+                         << " set to Reserved Priority "
+                            "Priority: Setting Priority to Max";
+            priority = 0x01FFFFFF;
+        }
+        else if ( priority < 0 )
+        {
+            LOG( WARNING ) << " Action Set Priority of " << setName
+                           << " set to < 0 something may "
+                              "have gone wrong";
+        }
+        else if ( priority < 0x01000000 )
+        {
+            LOG( DEBUG ) << " Priority of " << setName
+                         << " set to: " << priority
+                         << " Priority is not active";
+        }
+        else
+        {
+            LOG( DEBUG ) << " Priority of " << setName
+                         << " set to: " << priority << " Priority is active";
+        }
+
+        m_activeActionSet.ulActionSet = handle;
+        m_activeActionSet.ulRestrictedToDevice
+            = vr::k_ulInvalidInputValueHandle;
+        m_activeActionSet.nPriority = priority;
+    }
+
     vr::VRActiveActionSet_t activeActionSet()
     {
         return m_activeActionSet;

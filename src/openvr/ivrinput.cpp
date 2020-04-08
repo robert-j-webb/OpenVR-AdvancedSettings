@@ -150,9 +150,12 @@ SteamIVRInput::SteamIVRInput()
                 m_music.activeActionSet(),
                 m_motion.activeActionSet(),
                 m_misc.activeActionSet(),
-                m_system.activeActionSet() } )
+                m_system.activeActionSet() } ),
+      m_systemSets(
+          { m_haptics.activeActionSet(), m_system.activeActionSet() } )
 
 {
+    g_isInputInit = true;
 } // namespace input
 /*!
 Returns true if the next media track should be played.
@@ -390,10 +393,31 @@ update state.
 */
 void SteamIVRInput::UpdateStates()
 {
-    const auto error
-        = vr::VRInput()->UpdateActionState( m_sets.data(),
-                                            sizeof( vr::VRActiveActionSet_t ),
-                                            action_sets::numberOfSets );
+    vr::EVRInputError error;
+
+    if ( g_priorityChangeFlag )
+    {
+        error = vr::VRInput()->UpdateActionState(
+            m_systemSets.data(), sizeof( vr::VRActiveActionSet_t ), 2 );
+
+        if ( error != vr::EVRInputError::VRInputError_None )
+        {
+            LOG( ERROR ) << "Error during IVRInput action state priority "
+                            "update. OpenVR Error: "
+                         << error;
+        }
+
+        int priority = static_cast<int>( g_priortityTarget );
+        m_music.setActionSetPriority( priority );
+        LOG( INFO ) << "music priority is: "
+                    << m_music.activeActionSet().nPriority;
+        m_motion.setActionSetPriority( priority );
+        m_misc.setActionSetPriority( priority );
+        g_priorityChangeFlag = false;
+    }
+    error = vr::VRInput()->UpdateActionState( m_sets.data(),
+                                              sizeof( vr::VRActiveActionSet_t ),
+                                              action_sets::numberOfSets );
 
     if ( error != vr::EVRInputError::VRInputError_None )
     {
@@ -403,12 +427,14 @@ void SteamIVRInput::UpdateStates()
     }
 }
 
-// Set's all Action sets EXCEPT Haptic and System
+// Sets the appropriate flags so Update States will properly adjust the priority
 void SteamIVRInput::changePriority( int32_t priorityVal )
 {
-    m_music.setActionSetPriority( priorityVal );
-    m_motion.setActionSetPriority( priorityVal );
-    m_misc.setActionSetPriority( priorityVal );
+    if ( g_isInputInit )
+    {
+        g_priorityChangeFlag = true;
+        g_priortityTarget = priorityVal;
+    }
 }
 
 } // namespace input

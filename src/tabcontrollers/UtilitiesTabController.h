@@ -46,6 +46,7 @@ private:
     bool m_batteryVisible[vr::k_unMaxTrackedDeviceCount];
 
     unsigned int m_utilitiesSettingsUpdateCounter = 19;
+    int m_priority = 0;
 
 public:
     void initStage1();
@@ -62,6 +63,7 @@ public:
 
     void setActionPriorityKeySetting( bool value );
     void setActionPriority( int value );
+    int actionPriority();
 
 public slots:
     void sendKeyboardInput( QString input );

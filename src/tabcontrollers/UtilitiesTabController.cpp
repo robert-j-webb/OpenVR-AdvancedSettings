@@ -30,6 +30,7 @@ void UtilitiesTabController::initStage1()
 void UtilitiesTabController::initStage2( OverlayController* var_parent )
 {
     this->m_parent = var_parent;
+    enableExclusiveInputChanged( false );
 }
 
 void UtilitiesTabController::sendKeyboardInput( QString input )
@@ -241,14 +242,10 @@ void UtilitiesTabController::setEnableExclusiveInput( bool value, bool notify )
     settings::setSetting( settings::BoolSetting::UTILITY_enableExclusiveInput,
                           value );
     setActionPriorityKeySetting( value );
-    // Long term Set Action Priority may need to be its own value
-    // to allow users to set their priority, for their particular setup
-    int priority = 0;
-    if ( value )
+    if ( !value )
     {
-        priority = 0x01000001;
+        m_parent->m_actions.changePriority( 0 );
     }
-    setActionPriority( priority );
 
     if ( notify )
     {
@@ -396,23 +393,27 @@ void UtilitiesTabController::modAlarmTimeMinute( int value, bool notify )
         }
     }
 }
+int UtilitiesTabController::actionPriority()
+{
+    return m_priority;
+}
 
 void UtilitiesTabController::setActionPriority( int value )
 {
-    int priority = value;
+    m_priority = value;
     setActionPriorityKeySetting( true );
-    if ( priority > 0x01FFFFFF )
+    if ( m_priority > 0x01FFFFFF )
     {
         LOG( WARNING ) << "Action Priority Exceeded Range, setting to Max "
                           "Priority (0x01FFFFFF)";
-        priority = 0x01FFFFFF;
+        m_priority = 0x01FFFFFF;
     }
-    if ( priority < 0 )
+    if ( m_priority < 0 )
     {
         LOG( WARNING ) << "Action Priority Set below 0, setting to 0";
-        priority = 0;
+        m_priority = 0;
     }
-    m_parent->m_actions.changePriority( priority );
+    // m_parent->m_actions.changePriority( priority );
 }
 
 void UtilitiesTabController::setActionPriorityKeySetting( bool value )

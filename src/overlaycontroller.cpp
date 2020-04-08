@@ -455,6 +455,9 @@ void OverlayController::SetWidget( QQuickItem* quickItem,
     m_settingsTabController.initStage2( this );
     m_utilitiesTabController.initStage2( this );
     m_moveCenterTabController.initStage2( this );
+
+    // prevents double toggle
+    m_useExclusive = m_utilitiesTabController.enableExclusiveInput();
 }
 
 void OverlayController::OnRenderRequest()
@@ -549,6 +552,17 @@ void OverlayController::processExclusiveBindings()
     if ( m_actions.exclusiveInputToggle() )
     {
         m_exclusiveInputToggle = !m_exclusiveInputToggle;
+        if ( m_useExclusive )
+        {
+            int priority = 0;
+            if ( m_exclusiveInputToggle )
+            {
+                priority = 0x01000001;
+            }
+
+            m_actions.changePriority( priority );
+        }
+
         m_useExclusive = m_utilitiesTabController.enableExclusiveInput();
     }
 }

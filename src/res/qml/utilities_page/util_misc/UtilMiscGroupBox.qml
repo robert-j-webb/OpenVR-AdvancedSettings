@@ -36,16 +36,12 @@ GroupBox {
                 id: utilitiesEnableExclusiveToggle
                 text: "Enable Exclusive Input (Caution)"
                 onCheckedChanged: {
-                    UtilitiesTabController.setEnableExclusiveInput(this.checked, false)
+                    UtilitiesTabController.setEnableExclusiveInput(this.checked, true)
                 }
             }
 
         }
 
-    }
-
-    Component.onCompleted: {
-            utilitiesEnableExclusiveToggle.checked = UtilitiesTabController.enableExclusiveInput
     }
 
     Connections {
